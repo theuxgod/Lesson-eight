@@ -227,6 +227,7 @@ const cards = computed(() => [
     key: 'revenue',
     label: 'Revenue',
     icon: 'mdi-currency-usd',
+    tooltip: 'Total revenue from all orders in the selected period.',
     value: `$${totalRevenue.value.toLocaleString()}`,
     sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
     delta: delta.value?.revenue ?? null,
@@ -236,6 +237,7 @@ const cards = computed(() => [
     key: 'visitors',
     label: 'Visitors',
     icon: 'mdi-account-multiple-outline',
+    tooltip: 'Unique visitors who landed on the site during the selected period.',
     value: totalVisitors.value.toLocaleString(),
     sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
     delta: delta.value?.visitors ?? null,
@@ -245,6 +247,7 @@ const cards = computed(() => [
     key: 'conversions',
     label: 'Conversions',
     icon: 'mdi-percent-outline',
+    tooltip: 'Orders divided by visitors, expressed as a percentage. Shown as a monthly average when "All Months" is selected.',
     value: `${avgConversions.value.toFixed(1)}%`,
     sub: isAll.value ? 'Yearly avg' : filtered.value[0]?.month ?? '',
     delta: delta.value?.conversions ?? null,
@@ -256,6 +259,7 @@ const cards = computed(() => [
     key: 'orders',
     label: 'Orders',
     icon: 'mdi-shopping-outline',
+    tooltip: 'Total number of completed orders placed during the selected period.',
     value: totalOrders.value.toLocaleString(),
     sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
     delta: delta.value?.orders ?? null,
@@ -278,9 +282,22 @@ const cards = computed(() => [
       >
         <v-card variant="flat" border rounded="lg" class="pa-5">
           <div class="d-flex align-center justify-space-between mb-3">
-            <span class="text-caption text-medium-emphasis text-uppercase font-weight-bold tracking-wide">
-              {{ card.label }}
-            </span>
+            <div class="d-flex align-center">
+              <span class="text-caption text-medium-emphasis text-uppercase font-weight-bold tracking-wide">
+                {{ card.label }}
+              </span>
+              <v-tooltip :text="card.tooltip" location="top" max-width="240">
+                <template #activator="{ props }">
+                  <v-icon
+                    v-bind="props"
+                    icon="mdi-information-outline"
+                    size="14"
+                    class="ml-1"
+                    style="opacity: 0.45; cursor: default;"
+                  />
+                </template>
+              </v-tooltip>
+            </div>
             <v-icon :icon="card.icon" size="20" color="primary" />
           </div>
           <div class="text-h4 font-weight-bold mb-1">{{ card.value }}</div>
