@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { provideMonth } from './composables/useMonth'
 
 const selectedMonth = provideMonth()
+
+const isDark = ref(false)
+const theme = computed(() => (isDark.value ? 'dark' : 'light'))
 
 const months = [
   { title: 'All Months', value: null },
@@ -21,7 +25,7 @@ const months = [
 </script>
 
 <template>
-  <v-app theme="dark">
+  <v-app :theme="theme">
     <v-app-bar flat border="b" color="surface">
       <v-app-bar-title>
         <v-icon icon="mdi-chart-box-outline" class="mr-2" color="primary" />
@@ -30,6 +34,12 @@ const months = [
       </v-app-bar-title>
 
       <template #append>
+        <v-btn
+          :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+          variant="text"
+          class="mr-2"
+          @click="isDark = !isDark"
+        />
         <v-select
           v-model="selectedMonth"
           :items="months"
