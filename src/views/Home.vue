@@ -4,6 +4,7 @@ import { Bar, Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { useMonth } from '../composables/useMonth'
 import rawMetrics from '../data/metrics.json'
+import rawMetrics2024 from '../data/metrics-2024.json'
 
 interface MonthData {
   month: string
@@ -15,6 +16,7 @@ interface MonthData {
 }
 
 const metrics: MonthData[] = rawMetrics
+const metrics2024: MonthData[] = rawMetrics2024
 
 const selectedMonth = useMonth()
 
@@ -26,6 +28,26 @@ const filtered = computed<MonthData[]>(() =>
 )
 
 const isAll = computed(() => selectedMonth.value === null)
+
+// ── YoY helpers ───────────────────────────────────────────────────────────
+const prior = computed<MonthData[]>(() =>
+  selectedMonth.value === null
+    ? metrics2024
+    : metrics2024.filter((m) => m.monthIndex === selectedMonth.value)
+)
+
+const priorRevenue = computed(() => prior.value.reduce((s, m) => s + m.revenue, 0))
+const priorVisitors = computed(() => prior.value.reduce((s, m) => s + m.visitors, 0))
+const priorConversions = computed(() => {
+  if (!prior.value.length) return 0
+  return prior.value.reduce((s, m) => s + m.conversions, 0) / prior.value.length
+})
+const priorOrders = computed(() => prior.value.reduce((s, m) => s + m.orders, 0))
+
+function yoyPct(current: number, previous: number): number {
+  if (previous === 0) return 0
+  return ((current - previous) / previous) * 100
+}
 
 // ── Summary card values ────────────────────────────────────────────────────
 const totalRevenue = computed(() =>
@@ -232,6 +254,7 @@ const cards = computed(() => [
     sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
     delta: delta.value?.revenue ?? null,
     deltaLabel: delta.value ? fmtPct(delta.value.revenue) : null,
+    yoy: yoyPct(totalRevenue.value, priorRevenue.value),
   },
   {
     key: 'visitors',
@@ -242,6 +265,7 @@ const cards = computed(() => [
     sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
     delta: delta.value?.visitors ?? null,
     deltaLabel: delta.value ? fmtPct(delta.value.visitors) : null,
+    yoy: yoyPct(totalVisitors.value, priorVisitors.value),
   },
   {
     key: 'conversions',
@@ -254,6 +278,7 @@ const cards = computed(() => [
     deltaLabel: delta.value
       ? `${delta.value.conversions >= 0 ? '+' : ''}${delta.value.conversions.toFixed(2)} pp`
       : null,
+    yoy: yoyPct(avgConversions.value, priorConversions.value),
   },
   {
     key: 'orders',
@@ -264,6 +289,7 @@ const cards = computed(() => [
     sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
     delta: delta.value?.orders ?? null,
     deltaLabel: delta.value ? fmtPct(delta.value.orders) : null,
+    yoy: yoyPct(totalOrders.value, priorOrders.value),
   },
 ])
 </script>
@@ -300,7 +326,19 @@ const cards = computed(() => [
             </div>
             <v-icon :icon="card.icon" size="20" color="primary" />
           </div>
-          <div class="text-h4 font-weight-bold mb-1">{{ card.value }}</div>
+          <div class="d-flex align-center gap-2 mb-1">
+            <span class="text-h4 font-weight-bold">{{ card.value }}</span>
+            <v-chip
+              :color="card.yoy >= 0 ? 'success' : 'error'"
+              size="x-small"
+              variant="tonal"
+              class="font-weight-medium ml-2"
+              style="font-size: 11px;"
+            >
+              {{ card.yoy >= 0 ? '▲' : '▼' }}
+              {{ Math.abs(card.yoy).toFixed(1) }}% YoY
+            </v-chip>
+          </div>
           <div class="d-flex align-center mt-1">
             <span class="text-caption text-medium-emphasis">{{ card.sub }}</span>
             <template v-if="card.delta !== null">
