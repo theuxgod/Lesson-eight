@@ -2,97 +2,97 @@
   {
     "month": "Jan",
     "monthIndex": 0,
-    "revenue": 41820,
-    "visitors": 8340,
-    "conversions": 2.8,
-    "orders": 234
+    "shipments": 1920,
+    "onTimeRate": 87.2,
+    "exceptionRate": 3.8,
+    "openExceptions": 73
   },
   {
     "month": "Feb",
     "monthIndex": 1,
-    "revenue": 39460,
-    "visitors": 7910,
-    "conversions": 2.6,
-    "orders": 206
+    "shipments": 1840,
+    "onTimeRate": 85.4,
+    "exceptionRate": 4.1,
+    "openExceptions": 81
   },
   {
     "month": "Mar",
     "monthIndex": 2,
-    "revenue": 47230,
-    "visitors": 9150,
-    "conversions": 3.1,
-    "orders": 284
+    "shipments": 2180,
+    "onTimeRate": 88.6,
+    "exceptionRate": 3.5,
+    "openExceptions": 63
   },
   {
     "month": "Apr",
     "monthIndex": 3,
-    "revenue": 52870,
-    "visitors": 10480,
-    "conversions": 3.4,
-    "orders": 357
+    "shipments": 2460,
+    "onTimeRate": 90.3,
+    "exceptionRate": 3.1,
+    "openExceptions": 55
   },
   {
     "month": "May",
     "monthIndex": 4,
-    "revenue": 58140,
-    "visitors": 12760,
-    "conversions": 3.2,
-    "orders": 408
+    "shipments": 2790,
+    "onTimeRate": 92.1,
+    "exceptionRate": 2.8,
+    "openExceptions": 42
   },
   {
     "month": "Jun",
     "monthIndex": 5,
-    "revenue": 63590,
-    "visitors": 14320,
-    "conversions": 3.7,
-    "orders": 530
+    "shipments": 3140,
+    "onTimeRate": 94.7,
+    "exceptionRate": 2.3,
+    "openExceptions": 34
   },
   {
     "month": "Jul",
     "monthIndex": 6,
-    "revenue": 71040,
-    "visitors": 15890,
-    "conversions": 4.1,
-    "orders": 652
+    "shipments": 3480,
+    "onTimeRate": 95.8,
+    "exceptionRate": 2.1,
+    "openExceptions": 29
   },
   {
     "month": "Aug",
     "monthIndex": 7,
-    "revenue": 68750,
-    "visitors": 15110,
-    "conversions": 3.9,
-    "orders": 589
+    "shipments": 3320,
+    "onTimeRate": 94.2,
+    "exceptionRate": 2.4,
+    "openExceptions": 37
   },
   {
     "month": "Sep",
     "monthIndex": 8,
-    "revenue": 61380,
-    "visitors": 12430,
-    "conversions": 3.5,
-    "orders": 435
+    "shipments": 2970,
+    "onTimeRate": 91.5,
+    "exceptionRate": 2.9,
+    "openExceptions": 48
   },
   {
     "month": "Oct",
     "monthIndex": 9,
-    "revenue": 57920,
-    "visitors": 11270,
-    "conversions": 3.3,
-    "orders": 372
+    "shipments": 2820,
+    "onTimeRate": 89.8,
+    "exceptionRate": 3.3,
+    "openExceptions": 58
   },
   {
     "month": "Nov",
     "monthIndex": 10,
-    "revenue": 74610,
-    "visitors": 16840,
-    "conversions": 4.8,
-    "orders": 809
+    "shipments": 3650,
+    "onTimeRate": 88.3,
+    "exceptionRate": 3.7,
+    "openExceptions": 68
   },
   {
     "month": "Dec",
     "monthIndex": 11,
-    "revenue": 79340,
-    "visitors": 18560,
-    "conversions": 4.5,
-    "orders": 835
+    "shipments": 4120,
+    "onTimeRate": 83.6,
+    "exceptionRate": 4.6,
+    "openExceptions": 95
   }
 ]

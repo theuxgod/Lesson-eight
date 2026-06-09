@@ -29,8 +29,8 @@ const months = [
     <v-app-bar flat border="b" color="surface">
       <v-app-bar-title>
         <v-icon icon="mdi-chart-box-outline" class="mr-2" color="primary" />
-        <span class="font-weight-bold">My Analytics Dashboard</span>
-        <span class="text-caption text-medium-emphasis ml-2">2026</span>
+        <span class="font-weight-bold">FastForward Logistics</span>
+        <span class="text-caption text-medium-emphasis ml-2">Ops Dashboard</span>
       </v-app-bar-title>
 
       <template #append>

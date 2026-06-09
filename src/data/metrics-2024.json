@@ -1,14 +1,98 @@
 [
-  { "month": "Jan", "monthIndex": 0, "revenue": 36490, "visitors": 7180, "conversions": 2.5, "orders": 179 },
-  { "month": "Feb", "monthIndex": 1, "revenue": 34760, "visitors": 6870, "conversions": 2.3, "orders": 158 },
-  { "month": "Mar", "monthIndex": 2, "revenue": 40120, "visitors": 7830, "conversions": 2.8, "orders": 219 },
-  { "month": "Apr", "monthIndex": 3, "revenue": 45340, "visitors": 9060, "conversions": 3.0, "orders": 272 },
-  { "month": "May", "monthIndex": 4, "revenue": 50580, "visitors": 11150, "conversions": 2.9, "orders": 323 },
-  { "month": "Jun", "monthIndex": 5, "revenue": 56270, "visitors": 12740, "conversions": 3.3, "orders": 421 },
-  { "month": "Jul", "monthIndex": 6, "revenue": 63050, "visitors": 14230, "conversions": 3.7, "orders": 526 },
-  { "month": "Aug", "monthIndex": 7, "revenue": 61420, "visitors": 13490, "conversions": 3.6, "orders": 486 },
-  { "month": "Sep", "monthIndex": 8, "revenue": 54180, "visitors": 11080, "conversions": 3.2, "orders": 355 },
-  { "month": "Oct", "monthIndex": 9, "revenue": 51760, "visitors": 10090, "conversions": 3.0, "orders": 303 },
-  { "month": "Nov", "monthIndex": 10, "revenue": 66540, "visitors": 15240, "conversions": 4.3, "orders": 655 },
-  { "month": "Dec", "monthIndex": 11, "revenue": 70890, "visitors": 16820, "conversions": 4.1, "orders": 688 }
+  {
+    "month": "Jan",
+    "monthIndex": 0,
+    "shipments": 1580,
+    "onTimeRate": 84.1,
+    "exceptionRate": 4.2,
+    "openExceptions": 82
+  },
+  {
+    "month": "Feb",
+    "monthIndex": 1,
+    "shipments": 1490,
+    "onTimeRate": 82.7,
+    "exceptionRate": 4.6,
+    "openExceptions": 91
+  },
+  {
+    "month": "Mar",
+    "monthIndex": 2,
+    "shipments": 1820,
+    "onTimeRate": 86.3,
+    "exceptionRate": 3.9,
+    "openExceptions": 71
+  },
+  {
+    "month": "Apr",
+    "monthIndex": 3,
+    "shipments": 2050,
+    "onTimeRate": 88.4,
+    "exceptionRate": 3.5,
+    "openExceptions": 62
+  },
+  {
+    "month": "May",
+    "monthIndex": 4,
+    "shipments": 2310,
+    "onTimeRate": 90.5,
+    "exceptionRate": 3.1,
+    "openExceptions": 49
+  },
+  {
+    "month": "Jun",
+    "monthIndex": 5,
+    "shipments": 2680,
+    "onTimeRate": 93.2,
+    "exceptionRate": 2.6,
+    "openExceptions": 40
+  },
+  {
+    "month": "Jul",
+    "monthIndex": 6,
+    "shipments": 2940,
+    "onTimeRate": 94.4,
+    "exceptionRate": 2.3,
+    "openExceptions": 33
+  },
+  {
+    "month": "Aug",
+    "monthIndex": 7,
+    "shipments": 2810,
+    "onTimeRate": 92.8,
+    "exceptionRate": 2.7,
+    "openExceptions": 43
+  },
+  {
+    "month": "Sep",
+    "monthIndex": 8,
+    "shipments": 2510,
+    "onTimeRate": 89.7,
+    "exceptionRate": 3.2,
+    "openExceptions": 55
+  },
+  {
+    "month": "Oct",
+    "monthIndex": 9,
+    "shipments": 2360,
+    "onTimeRate": 87.9,
+    "exceptionRate": 3.7,
+    "openExceptions": 67
+  },
+  {
+    "month": "Nov",
+    "monthIndex": 10,
+    "shipments": 3120,
+    "onTimeRate": 86.2,
+    "exceptionRate": 4.1,
+    "openExceptions": 78
+  },
+  {
+    "month": "Dec",
+    "monthIndex": 11,
+    "shipments": 3540,
+    "onTimeRate": 81.3,
+    "exceptionRate": 5,
+    "openExceptions": 109
+  }
 ]

@@ -9,63 +9,56 @@ import rawMetrics2024 from '../data/metrics-2024.json'
 interface MonthData {
   month: string
   monthIndex: number
-  revenue: number
-  visitors: number
-  conversions: number
-  orders: number
+  shipments: number
+  onTimeRate: number
+  exceptionRate: number
+  openExceptions: number
 }
 
-const metrics: MonthData[] = rawMetrics
-const metrics2024: MonthData[] = rawMetrics2024
-
+const metrics: MonthData[] = rawMetrics as MonthData[]
+const metrics2024: MonthData[] = rawMetrics2024 as MonthData[]
 const selectedMonth = useMonth()
 
-// ── Derived dataset ────────────────────────────────────────────────────────
 const filtered = computed<MonthData[]>(() =>
   selectedMonth.value === null
     ? metrics
     : metrics.filter((m) => m.monthIndex === selectedMonth.value)
 )
-
 const isAll = computed(() => selectedMonth.value === null)
 
-// ── YoY helpers ───────────────────────────────────────────────────────────
 const prior = computed<MonthData[]>(() =>
   selectedMonth.value === null
     ? metrics2024
     : metrics2024.filter((m) => m.monthIndex === selectedMonth.value)
 )
 
-const priorRevenue = computed(() => prior.value.reduce((s, m) => s + m.revenue, 0))
-const priorVisitors = computed(() => prior.value.reduce((s, m) => s + m.visitors, 0))
-const priorConversions = computed(() => {
+const priorShipments = computed(() => prior.value.reduce((s, m) => s + m.shipments, 0))
+const priorOnTimeRate = computed(() => {
   if (!prior.value.length) return 0
-  return prior.value.reduce((s, m) => s + m.conversions, 0) / prior.value.length
+  return prior.value.reduce((s, m) => s + m.onTimeRate, 0) / prior.value.length
 })
-const priorOrders = computed(() => prior.value.reduce((s, m) => s + m.orders, 0))
+const priorExceptionRate = computed(() => {
+  if (!prior.value.length) return 0
+  return prior.value.reduce((s, m) => s + m.exceptionRate, 0) / prior.value.length
+})
+const priorOpenExceptions = computed(() => prior.value.reduce((s, m) => s + m.openExceptions, 0))
 
 function yoyPct(current: number, previous: number): number {
   if (previous === 0) return 0
   return ((current - previous) / previous) * 100
 }
 
-// ── Summary card values ────────────────────────────────────────────────────
-const totalRevenue = computed(() =>
-  filtered.value.reduce((s, m) => s + m.revenue, 0)
-)
-const totalVisitors = computed(() =>
-  filtered.value.reduce((s, m) => s + m.visitors, 0)
-)
-const avgConversions = computed(() => {
+const totalShipments = computed(() => filtered.value.reduce((s, m) => s + m.shipments, 0))
+const avgOnTimeRate = computed(() => {
   if (!filtered.value.length) return 0
-  const sum = filtered.value.reduce((s, m) => s + m.conversions, 0)
-  return sum / filtered.value.length
+  return filtered.value.reduce((s, m) => s + m.onTimeRate, 0) / filtered.value.length
 })
-const totalOrders = computed(() =>
-  filtered.value.reduce((s, m) => s + m.orders, 0)
-)
+const avgExceptionRate = computed(() => {
+  if (!filtered.value.length) return 0
+  return filtered.value.reduce((s, m) => s + m.exceptionRate, 0) / filtered.value.length
+})
+const totalOpenExceptions = computed(() => filtered.value.reduce((s, m) => s + m.openExceptions, 0))
 
-// ── Month-over-month delta (only meaningful when a single month is selected) ─
 function prevMonth(idx: number): MonthData | undefined {
   return metrics.find((m) => m.monthIndex === idx - 1)
 }
@@ -76,220 +69,112 @@ const delta = computed(() => {
   const prev = prevMonth(cur.monthIndex)
   if (!prev) return null
   return {
-    revenue: ((cur.revenue - prev.revenue) / prev.revenue) * 100,
-    visitors: ((cur.visitors - prev.visitors) / prev.visitors) * 100,
-    conversions: cur.conversions - prev.conversions,
-    orders: ((cur.orders - prev.orders) / prev.orders) * 100,
+    shipments: ((cur.shipments - prev.shipments) / prev.shipments) * 100,
+    onTimeRate: cur.onTimeRate - prev.onTimeRate,
+    exceptionRate: cur.exceptionRate - prev.exceptionRate,
+    openExceptions: ((cur.openExceptions - prev.openExceptions) / prev.openExceptions) * 100,
   }
 })
 
 function deltaIcon(val: number) {
   return val >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin'
 }
-function deltaColor(val: number) {
-  return val >= 0 ? 'success' : 'error'
+function deltaColor(val: number, lowerIsBetter = false) {
+  const positive = val >= 0
+  return (positive !== lowerIsBetter) ? 'success' : 'error'
 }
-function fmtPct(val: number) {
-  return `${val >= 0 ? '+' : ''}${val.toFixed(1)}%`
-}
+function fmtPct(val: number) { return `${val >= 0 ? '+' : ''}${val.toFixed(1)}%` }
+function fmtPp(val: number) { return `${val >= 0 ? '+' : ''}${val.toFixed(1)} pp` }
 
-// ── Palette ────────────────────────────────────────────────────────────────
 const BLUE = '#5C9CE5'
 const BLUE_BG = 'rgba(92,156,229,0.15)'
 const TEAL = '#4DB6AC'
 const TEAL_BG = 'rgba(77,182,172,0.18)'
-const MUTED = 'rgba(92,156,229,0.35)'
+const MUTED = 'rgba(92,156,229,0.30)'
 
-// ── Bar chart – revenue ────────────────────────────────────────────────────
-const revenueChartData = computed<ChartData<'bar'>>(() => {
-  const allLabels = metrics.map((m) => m.month)
-  const allValues = metrics.map((m) => m.revenue)
-  const highlight =
-    selectedMonth.value === null
-      ? allValues.map(() => BLUE)
-      : allValues.map((_, i) => (metrics[i].monthIndex === selectedMonth.value ? BLUE : MUTED))
-
-  return {
-    labels: allLabels,
-    datasets: [
-      {
-        label: 'Revenue',
-        data: allValues,
-        backgroundColor: highlight,
-        borderRadius: 4,
-        borderSkipped: false,
-      },
-    ],
-  }
+const shipmentsChartData = computed<ChartData<'bar'>>(() => {
+  const labels = metrics.map((m) => m.month)
+  const values = metrics.map((m) => m.shipments)
+  const bg = selectedMonth.value === null
+    ? values.map(() => BLUE)
+    : values.map((_, i) => (metrics[i].monthIndex === selectedMonth.value ? BLUE : MUTED))
+  return { labels, datasets: [{ label: 'Shipments', data: values, backgroundColor: bg, borderRadius: 4, borderSkipped: false }] }
 })
-
-const revenueChartOptions = computed<ChartOptions<'bar'>>(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      callbacks: {
-        label: (ctx) => ` $${(ctx.raw as number).toLocaleString()}`,
-      },
-    },
-  },
+const shipmentsChartOptions = computed<ChartOptions<'bar'>>(() => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${(ctx.raw as number).toLocaleString()} shipments` } } },
   scales: {
-    x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#aaa' } },
-    y: {
-      grid: { color: 'rgba(255,255,255,0.06)' },
-      ticks: {
-        color: '#aaa',
-        callback: (v) => `$${(Number(v) / 1000).toFixed(0)}k`,
-      },
-    },
+    x: { grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { color: '#888' } },
+    y: { grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { color: '#888', callback: (v) => `${(Number(v)/1000).toFixed(1)}k` } },
   },
 }))
 
-// ── Line chart – visitors ──────────────────────────────────────────────────
-const visitorsChartData = computed<ChartData<'line'>>(() => {
-  const allLabels = metrics.map((m) => m.month)
-  const allValues = metrics.map((m) => m.visitors)
-  const pointColors =
-    selectedMonth.value === null
-      ? allValues.map(() => TEAL)
-      : allValues.map((_, i) => (metrics[i].monthIndex === selectedMonth.value ? TEAL : MUTED))
-
-  return {
-    labels: allLabels,
-    datasets: [
-      {
-        label: 'Visitors',
-        data: allValues,
-        borderColor: TEAL,
-        backgroundColor: TEAL_BG,
-        pointBackgroundColor: pointColors,
-        pointRadius: pointColors.map((c) => (c === TEAL ? 5 : 3)),
-        tension: 0.35,
-        fill: true,
-      },
-    ],
-  }
+const onTimeChartData = computed<ChartData<'line'>>(() => {
+  const labels = metrics.map((m) => m.month)
+  const values = metrics.map((m) => m.onTimeRate)
+  const pts = selectedMonth.value === null
+    ? values.map(() => TEAL)
+    : values.map((_, i) => (metrics[i].monthIndex === selectedMonth.value ? TEAL : MUTED))
+  return { labels, datasets: [{ label: 'On-Time Rate', data: values, borderColor: TEAL, backgroundColor: TEAL_BG, pointBackgroundColor: pts, pointRadius: pts.map((c) => (c === TEAL ? 5 : 3)), tension: 0.35, fill: true }] }
 })
-
-const visitorsChartOptions = computed<ChartOptions<'line'>>(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      callbacks: {
-        label: (ctx) => ` ${(ctx.raw as number).toLocaleString()} visitors`,
-      },
-    },
-  },
+const onTimeChartOptions = computed<ChartOptions<'line'>>(() => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${(ctx.raw as number).toFixed(1)}%` } } },
   scales: {
-    x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#aaa' } },
-    y: {
-      grid: { color: 'rgba(255,255,255,0.06)' },
-      ticks: {
-        color: '#aaa',
-        callback: (v) => `${(Number(v) / 1000).toFixed(0)}k`,
-      },
-    },
+    x: { grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { color: '#888' } },
+    y: { grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { color: '#888', callback: (v) => `${v}%` }, min: 75, max: 100 },
   },
 }))
 
-// ── Area chart – conversions ───────────────────────────────────────────────
-const conversionsChartData = computed<ChartData<'line'>>(() => {
-  const allLabels = metrics.map((m) => m.month)
-  const allValues = metrics.map((m) => m.conversions)
-  const pointColors =
-    selectedMonth.value === null
-      ? allValues.map(() => BLUE)
-      : allValues.map((_, i) => (metrics[i].monthIndex === selectedMonth.value ? BLUE : MUTED))
-
-  return {
-    labels: allLabels,
-    datasets: [
-      {
-        label: 'Conversion Rate',
-        data: allValues,
-        borderColor: BLUE,
-        backgroundColor: BLUE_BG,
-        pointBackgroundColor: pointColors,
-        pointRadius: pointColors.map((c) => (c === BLUE ? 5 : 3)),
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  }
+const exceptionChartData = computed<ChartData<'line'>>(() => {
+  const labels = metrics.map((m) => m.month)
+  const values = metrics.map((m) => m.exceptionRate)
+  const pts = selectedMonth.value === null
+    ? values.map(() => BLUE)
+    : values.map((_, i) => (metrics[i].monthIndex === selectedMonth.value ? BLUE : MUTED))
+  return { labels, datasets: [{ label: 'Exception Rate', data: values, borderColor: BLUE, backgroundColor: BLUE_BG, pointBackgroundColor: pts, pointRadius: pts.map((c) => (c === BLUE ? 5 : 3)), tension: 0.4, fill: true }] }
 })
-
-const conversionsChartOptions = computed<ChartOptions<'line'>>(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      callbacks: {
-        label: (ctx) => ` ${(ctx.raw as number).toFixed(1)}%`,
-      },
-    },
-  },
+const exceptionChartOptions = computed<ChartOptions<'line'>>(() => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${(ctx.raw as number).toFixed(1)}%` } } },
   scales: {
-    x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#aaa' } },
-    y: {
-      grid: { color: 'rgba(255,255,255,0.06)' },
-      ticks: { color: '#aaa', callback: (v) => `${v}%` },
-      min: 0,
-      max: 6,
-    },
+    x: { grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { color: '#888' } },
+    y: { grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { color: '#888', callback: (v) => `${v}%` }, min: 0, max: 6 },
   },
 }))
 
-// ── Summary card definitions ───────────────────────────────────────────────
 const cards = computed(() => [
   {
-    key: 'revenue',
-    label: 'Revenue',
-    icon: 'mdi-currency-usd',
-    tooltip: 'Total revenue from all orders in the selected period.',
-    value: `$${totalRevenue.value.toLocaleString()}`,
+    key: 'shipments', label: 'Shipment Volume', icon: 'mdi-truck-delivery-outline',
+    tooltip: 'Total number of shipments dispatched during the selected period.',
+    value: totalShipments.value.toLocaleString(),
     sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
-    delta: delta.value?.revenue ?? null,
-    deltaLabel: delta.value ? fmtPct(delta.value.revenue) : null,
-    yoy: yoyPct(totalRevenue.value, priorRevenue.value),
+    delta: delta.value?.shipments ?? null, deltaLabel: delta.value ? fmtPct(delta.value.shipments) : null,
+    lowerIsBetter: false, yoy: yoyPct(totalShipments.value, priorShipments.value), yoyLower: false,
   },
   {
-    key: 'visitors',
-    label: 'Visitors',
-    icon: 'mdi-account-multiple-outline',
-    tooltip: 'Unique visitors who landed on the site during the selected period.',
-    value: totalVisitors.value.toLocaleString(),
-    sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
-    delta: delta.value?.visitors ?? null,
-    deltaLabel: delta.value ? fmtPct(delta.value.visitors) : null,
-    yoy: yoyPct(totalVisitors.value, priorVisitors.value),
-  },
-  {
-    key: 'conversions',
-    label: 'Conversions',
-    icon: 'mdi-percent-outline',
-    tooltip: 'Orders divided by visitors, expressed as a percentage. Shown as a monthly average when "All Months" is selected.',
-    value: `${avgConversions.value.toFixed(1)}%`,
+    key: 'ontime', label: 'On-Time Delivery', icon: 'mdi-check-circle-outline',
+    tooltip: 'Percentage of shipments delivered on or before the committed delivery date.',
+    value: `${avgOnTimeRate.value.toFixed(1)}%`,
     sub: isAll.value ? 'Yearly avg' : filtered.value[0]?.month ?? '',
-    delta: delta.value?.conversions ?? null,
-    deltaLabel: delta.value
-      ? `${delta.value.conversions >= 0 ? '+' : ''}${delta.value.conversions.toFixed(2)} pp`
-      : null,
-    yoy: yoyPct(avgConversions.value, priorConversions.value),
+    delta: delta.value?.onTimeRate ?? null, deltaLabel: delta.value ? fmtPp(delta.value.onTimeRate) : null,
+    lowerIsBetter: false, yoy: yoyPct(avgOnTimeRate.value, priorOnTimeRate.value), yoyLower: false,
   },
   {
-    key: 'orders',
-    label: 'Orders',
-    icon: 'mdi-shopping-outline',
-    tooltip: 'Total number of completed orders placed during the selected period.',
-    value: totalOrders.value.toLocaleString(),
+    key: 'exceptions', label: 'Exception Rate', icon: 'mdi-alert-circle-outline',
+    tooltip: 'Percentage of shipments that triggered an exception (damage, delay, or misdirect).',
+    value: `${avgExceptionRate.value.toFixed(1)}%`,
+    sub: isAll.value ? 'Yearly avg' : filtered.value[0]?.month ?? '',
+    delta: delta.value?.exceptionRate ?? null, deltaLabel: delta.value ? fmtPp(delta.value.exceptionRate) : null,
+    lowerIsBetter: true, yoy: yoyPct(avgExceptionRate.value, priorExceptionRate.value), yoyLower: true,
+  },
+  {
+    key: 'openexceptions', label: 'Open Exceptions', icon: 'mdi-clipboard-alert-outline',
+    tooltip: 'Count of unresolved exceptions currently awaiting action by the ops team.',
+    value: totalOpenExceptions.value.toLocaleString(),
     sub: isAll.value ? 'Full year' : filtered.value[0]?.month ?? '',
-    delta: delta.value?.orders ?? null,
-    deltaLabel: delta.value ? fmtPct(delta.value.orders) : null,
-    yoy: yoyPct(totalOrders.value, priorOrders.value),
+    delta: delta.value?.openExceptions ?? null, deltaLabel: delta.value ? fmtPct(delta.value.openExceptions) : null,
+    lowerIsBetter: true, yoy: yoyPct(totalOpenExceptions.value, priorOpenExceptions.value), yoyLower: true,
   },
 ])
 </script>
@@ -297,60 +182,38 @@ const cards = computed(() => [
 <template>
   <v-container fluid class="pa-6">
 
-    <!-- Summary cards -->
     <v-row>
-      <v-col
-        v-for="card in cards"
-        :key="card.key"
-        cols="12"
-        sm="6"
-        lg="3"
-      >
+      <v-col v-for="card in cards" :key="card.key" cols="12" sm="6" lg="3">
         <v-card variant="flat" border rounded="lg" class="pa-5">
           <div class="d-flex align-center justify-space-between mb-3">
             <div class="d-flex align-center">
-              <span class="text-caption text-medium-emphasis text-uppercase font-weight-bold tracking-wide">
+              <span class="text-caption text-medium-emphasis text-uppercase font-weight-bold">
                 {{ card.label }}
               </span>
               <v-tooltip :text="card.tooltip" location="top" max-width="240">
                 <template #activator="{ props }">
-                  <v-icon
-                    v-bind="props"
-                    icon="mdi-information-outline"
-                    size="14"
-                    class="ml-1"
-                    style="opacity: 0.45; cursor: default;"
-                  />
+                  <v-icon v-bind="props" icon="mdi-information-outline" size="14" class="ml-1" style="opacity:0.45;cursor:default;" />
                 </template>
               </v-tooltip>
             </div>
             <v-icon :icon="card.icon" size="20" color="primary" />
           </div>
-          <div class="d-flex align-center gap-2 mb-1">
+
+          <div class="d-flex align-center mb-1">
             <span class="text-h4 font-weight-bold">{{ card.value }}</span>
             <v-chip
-              :color="card.yoy >= 0 ? 'success' : 'error'"
-              size="x-small"
-              variant="tonal"
-              class="font-weight-medium ml-2"
-              style="font-size: 11px;"
+              :color="(card.yoy >= 0) !== card.yoyLower ? 'success' : 'error'"
+              size="x-small" variant="tonal" class="font-weight-medium ml-2" style="font-size:11px;"
             >
-              {{ card.yoy >= 0 ? '▲' : '▼' }}
-              {{ Math.abs(card.yoy).toFixed(1) }}% YoY
+              {{ card.yoy >= 0 ? '▲' : '▼' }} {{ Math.abs(card.yoy).toFixed(1) }}% YoY
             </v-chip>
           </div>
+
           <div class="d-flex align-center mt-1">
             <span class="text-caption text-medium-emphasis">{{ card.sub }}</span>
             <template v-if="card.delta !== null">
-              <v-icon
-                :icon="deltaIcon(card.delta)"
-                :color="deltaColor(card.delta)"
-                size="16"
-                class="ml-2"
-              />
-              <span :class="`text-caption text-${deltaColor(card.delta)} ml-1`">
-                {{ card.deltaLabel }}
-              </span>
+              <v-icon :icon="deltaIcon(card.delta)" :color="deltaColor(card.delta, card.lowerIsBetter)" size="16" class="ml-2" />
+              <span :class="`text-caption text-${deltaColor(card.delta, card.lowerIsBetter)} ml-1`">{{ card.deltaLabel }}</span>
               <span class="text-caption text-medium-emphasis ml-1">vs prev mo.</span>
             </template>
           </div>
@@ -358,33 +221,31 @@ const cards = computed(() => [
       </v-col>
     </v-row>
 
-    <!-- Revenue + Visitors charts -->
     <v-row class="mt-4">
       <v-col cols="12" md="7">
         <v-card variant="flat" border rounded="lg" class="pa-5">
-          <div class="text-subtitle-1 font-weight-semibold mb-4">Monthly Revenue</div>
-          <div style="position: relative; height: 280px;">
-            <Bar :data="revenueChartData" :options="revenueChartOptions" />
+          <div class="text-subtitle-1 font-weight-semibold mb-4">Monthly Shipment Volume</div>
+          <div style="position:relative;height:280px;">
+            <Bar :data="shipmentsChartData" :options="shipmentsChartOptions" />
           </div>
         </v-card>
       </v-col>
       <v-col cols="12" md="5">
         <v-card variant="flat" border rounded="lg" class="pa-5">
-          <div class="text-subtitle-1 font-weight-semibold mb-4">Visitor Traffic</div>
-          <div style="position: relative; height: 280px;">
-            <Line :data="visitorsChartData" :options="visitorsChartOptions" />
+          <div class="text-subtitle-1 font-weight-semibold mb-4">On-Time Delivery Rate</div>
+          <div style="position:relative;height:280px;">
+            <Line :data="onTimeChartData" :options="onTimeChartOptions" />
           </div>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Conversions area chart -->
     <v-row class="mt-4">
       <v-col cols="12">
         <v-card variant="flat" border rounded="lg" class="pa-5">
-          <div class="text-subtitle-1 font-weight-semibold mb-4">Conversion Rate Trend</div>
-          <div style="position: relative; height: 240px;">
-            <Line :data="conversionsChartData" :options="conversionsChartOptions" />
+          <div class="text-subtitle-1 font-weight-semibold mb-4">Exception Rate Trend</div>
+          <div style="position:relative;height:240px;">
+            <Line :data="exceptionChartData" :options="exceptionChartOptions" />
           </div>
         </v-card>
       </v-col>
